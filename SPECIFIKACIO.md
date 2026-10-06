@@ -53,3 +53,51 @@ Mestský súd Bratislava III, oddiel Sro, vložka 162570/B
 ## 8. Nyitott teendők
 - A Payload termék-collection neve (slug) és az olvasási jogosultság ellenőrzése.
 - Aldomain vagy *.netlify.app cím.
+
+## 9. Kommunikáció a megrendelővel
+- Három üzenet: visszaigazolás, elkészült-értesítés, emlékeztető.
+- Csatorna: e-mail és WhatsApp. Nyelv: szlovák.
+- Kézi küldés: a gomb megnyitja az előre kitöltött üzenetet (WhatsApp: wa.me link, e-mail: mailto link), a küldést a felhasználó végzi.
+- Személyes átvétel helye: Námestie Andreja Hlinku 1, 831 06 Bratislava – Rača.
+
+### Potvrdenie objednávky
+Tárgy: Potvrdenie objednávky – Na Koláče
+
+Dobrý deň, {meno},
+
+ďakujeme za Vašu objednávku. Potvrdzujeme:
+
+{zoznam položiek}
+Spolu: {suma} €
+
+[odber] Osobný odber: {dátum} o {čas}, Námestie Andreja Hlinku 1, 831 06 Bratislava – Rača
+[doručenie] Doručenie: {dátum} o {čas}, na adresu {adresa doručenia}
+
+Ak by ste potrebovali niečo zmeniť, kontaktujte nás.
+
+S pozdravom
+Tím Na Koláče
+
+### Objednávka je pripravená
+Tárgy: Vaša objednávka je pripravená – Na Koláče
+
+Dobrý deň, {meno},
+
+Vaša objednávka je pripravená.
+[odber] Môžete si ju vyzdvihnúť {dátum} o {čas}, Námestie Andreja Hlinku 1, 831 06 Bratislava – Rača.
+[doručenie] Doručíme Vám ju {dátum} o {čas}.
+
+S pozdravom
+Tím Na Koláče
+
+### Pripomienka
+Tárgy: Pripomienka objednávky – Na Koláče
+
+Dobrý deň, {meno},
+
+pripomíname Vašu objednávku na {dátum} o {čas}.
+[odber] Tešíme sa na Vás, Námestie Andreja Hlinku 1, 831 06 Bratislava – Rača.
+[doručenie] Doručenie na adresu {adresa doručenia}.
+
+S pozdravom
+Tím Na Koláče
