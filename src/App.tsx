@@ -1,20 +1,33 @@
-import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider, useAuth } from './lib/auth'
+import Prihlasenie from './pages/Prihlasenie'
+import Objednavky from './pages/Objednavky'
+
+function Chranene({ children }: { children: ReactNode }) {
+  const { session, loading } = useAuth()
+  if (loading) return <p style={{ fontFamily: 'system-ui, sans-serif', padding: 32 }}>Načítava sa…</p>
+  if (!session) return <Navigate to="/prihlasenie" replace />
+  return <>{children}</>
+}
 
 export default function App() {
-  const [status, setStatus] = useState('Pripájanie…')
-
-  useEffect(() => {
-    const url = import.meta.env.VITE_SUPABASE_URL as string
-    const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string
-    fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } })
-      .then((r) => setStatus(r.ok ? 'Pripojenie k Supabase je v poriadku' : `Chyba: HTTP ${r.status}`))
-      .catch((e: unknown) => setStatus(`Chyba: ${String(e)}`))
-  }, [])
-
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: 32 }}>
-      <h1>Na Koláče – telefonické objednávky</h1>
-      <p>{status}</p>
-    </main>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/prihlasenie" element={<Prihlasenie />} />
+          <Route
+            path="/"
+            element={
+              <Chranene>
+                <Objednavky />
+              </Chranene>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
