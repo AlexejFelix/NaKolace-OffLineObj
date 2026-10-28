@@ -110,4 +110,4 @@ Tím Na Koláče
 ## 10. Nyitott teendők
 - A Payload termék-collection neve (slug) és az olvasási jogosultság ellenőrzése.
 - Aldomain vagy *.netlify.app cím.
-- Adatbázis: az order_items.origin mező (friss / fagyasztott) eltávolítása, mert a funkció kikerült.
+- Adatbázis: az order_items.origin mező (friss / fagyasztott) megmarad, de a felületen nem jelenik meg; a párhuzamos nyomonkövetési apphoz később elővehető.
