@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './lib/auth'
 import Layout from './components/Layout'
 import Prihlasenie from './pages/Prihlasenie'
 import Objednavky from './pages/Objednavky'
+import NovaObjednavka from './pages/NovaObjednavka'
 
 function Chranene({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth()
@@ -47,7 +48,7 @@ export default function App() {
               path="/nova"
               element={
                 <LenAdmin>
-                  <Pripravuje nazov="Nová objednávka" />
+                  <NovaObjednavka />
                 </LenAdmin>
               }
             />
