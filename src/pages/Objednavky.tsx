@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
@@ -15,6 +15,7 @@ import {
   zaciatokDna,
   type DenObjednavka,
 } from '../lib/den'
+import DetailPanel from '../components/DetailPanel'
 import './Objednavky.css'
 
 function nadpisDna(datum: Date): string {
@@ -40,7 +41,7 @@ const STLPCE: { stav: Exclude<Stav, 'zrusena'>; nazov: string; kratko: string; f
 
 type Vysledok = { kluc: string; objednavky: DenObjednavka[]; chyba: string | null }
 
-function Karta({ o, mena }: { o: DenObjednavka; mena: Map<string, string> }) {
+function Karta({ o, mena, onOpen }: { o: DenObjednavka; mena: Map<string, string>; onOpen: (id: string) => void }) {
   const hotove = o.polozky.filter((p) => p.stav === 'hotova').length
   const spolu = o.polozky.length
   const percento = spolu ? Math.round((hotove / spolu) * 100) : 0
@@ -54,7 +55,19 @@ function Karta({ o, mena }: { o: DenObjednavka; mena: Map<string, string> }) {
     .slice(0, 2)
 
   return (
-    <article className={`ob-card${o.stav === 'zrusena' ? ' is-zrusena' : ''}`}>
+    <article
+      className={`ob-card${o.stav === 'zrusena' ? ' is-zrusena' : ''}`}
+      role="button"
+      tabIndex={0}
+      aria-label={`Otvoriť objednávku: ${o.meno || 'Bez mena'}, ${casText(o.cas)}`}
+      onClick={() => onOpen(o.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpen(o.id)
+        }
+      }}
+    >
       <div className="ob-card-top">
         <span className="ob-time">{casText(o.cas)}</span>
         {o.prevzatie && (
@@ -123,6 +136,7 @@ export default function Objednavky() {
   const [params, setParams] = useSearchParams()
   const den = useMemo(() => zKluca(params.get('d')) ?? zaciatokDna(new Date()), [params])
   const kluc = naKluc(den)
+  const otvorena = params.get('o')
 
   const [verzia, setVerzia] = useState(0)
   const [vysledok, setVysledok] = useState<Vysledok | null>(null)
@@ -191,6 +205,27 @@ export default function Objednavky() {
     const novy = naKluc(d)
     setParams(novy === dnes ? {} : { d: novy })
   }
+
+  const otvor = useCallback(
+    (id: string) => {
+      setParams((p) => {
+        const n = new URLSearchParams(p)
+        n.set('o', id)
+        return n
+      })
+    },
+    [setParams],
+  )
+
+  const zatvor = useCallback(() => {
+    setParams((p) => {
+      const n = new URLSearchParams(p)
+      n.delete('o')
+      return n
+    })
+  }, [setParams])
+
+  const poZmene = useCallback(() => setVerzia((v) => v + 1), [])
 
   return (
     <section className="ob">
@@ -312,7 +347,7 @@ export default function Objednavky() {
                 </div>
                 <div className="ob-col-bar" style={{ background: s.farba }} />
                 {karty.map((o) => (
-                  <Karta key={o.id} o={o} mena={mena} />
+                  <Karta key={o.id} o={o} mena={mena} onOpen={otvor} />
                 ))}
                 {karty.length === 0 && <div className="ob-col-empty">Žiadne objednávky</div>}
               </section>
@@ -329,11 +364,15 @@ export default function Objednavky() {
           {ukazZrusene && (
             <div className="ob-cancelled-list">
               {zrusene.map((o) => (
-                <Karta key={o.id} o={o} mena={mena} />
+                <Karta key={o.id} o={o} mena={mena} onOpen={otvor} />
               ))}
             </div>
           )}
         </div>
+      )}
+
+      {otvorena && (
+        <DetailPanel id={otvorena} mena={mena} isAdmin={isAdmin} verzia={verzia} onClose={zatvor} onZmena={poZmene} />
       )}
     </section>
   )
