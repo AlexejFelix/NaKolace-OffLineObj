@@ -200,7 +200,7 @@ export async function oznacPolozkuHotovu(id: string): Promise<void> {
 
 /** Odošle e-mail zákazníkovi cez serverovú funkciu (z adresy objednavky@nakolace.sk). */
 export async function odosliEmail(orderId: string, typ: TypSpravy, predmet: string, text: string): Promise<void> {
-  const { error } = await supabase.functions.invoke('posli-email', { body: { orderId, typ, predmet, text } })
+  const { error } = await supabase.functions.invoke('quick-endpoint', { body: { orderId, typ, predmet, text } })
   if (!error) return
   let sprava = error.message
   const kontext: unknown = 'context' in error ? (error as { context?: unknown }).context : undefined

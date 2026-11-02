@@ -1,3 +1,4 @@
+// Supabase funkcia „quick-endpoint“ (názov pridelil dashboard pri nasadení).
 // Odošle e-mail zákazníkovi z adresy objednavky@nakolace.sk cez SMTP Websupportu
 // a zapíše výsledok do tabuľky order_messages (história objednávky).
 // Volať môže len prihlásený používateľ aplikácie.
