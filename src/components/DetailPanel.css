@@ -364,6 +364,74 @@ button.dp-step:disabled {
   margin: 0;
 }
 
+.dp-history-err {
+  color: var(--danger-text);
+}
+
+button.dp-chip {
+  cursor: pointer;
+}
+
+.dp-compose-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: rgba(31, 27, 34, 0.32);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.dp-compose {
+  width: 100%;
+  max-width: 500px;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(31, 27, 34, 0.22);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dp-compose-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dp-compose-head h3 {
+  font-family: var(--font-ui);
+  font-size: 17px;
+}
+
+.dp-compose-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.dp-compose-meta strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.dp-compose-text textarea {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dp-compose-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .ob-card[role='button'] {
   cursor: pointer;
   transition: box-shadow 0.15s ease, transform 0.15s ease;

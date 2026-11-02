@@ -21,6 +21,16 @@ export type ZaznamHistorie = {
   novy: Stav
 }
 
+export type ZaznamSpravy = {
+  id: number
+  kedy: Date
+  kto: string | null
+  typ: TypSpravy
+  komu: string
+  ok: boolean
+  chyba: string | null
+}
+
 export type Detail = {
   id: string
   vytvorena: Date
@@ -40,6 +50,7 @@ export type Detail = {
   completedBy: string | null
   polozky: DetailPolozka[]
   historia: ZaznamHistorie[]
+  spravy: ZaznamSpravy[]
 }
 
 type RiadokPolozky = {
@@ -74,6 +85,16 @@ type RiadokObjednavky = {
   order_items: RiadokPolozky[] | null
 }
 
+type RiadokSpravy = {
+  id: number
+  kind: TypSpravy
+  recipient: string
+  sent_by: string | null
+  sent_at: string
+  ok: boolean
+  error: string | null
+}
+
 type RiadokHistorie = {
   id: number
   item_id: string | null
@@ -84,7 +105,7 @@ type RiadokHistorie = {
 }
 
 export async function nacitajDetail(id: string): Promise<Detail | null> {
-  const [obj, hist] = await Promise.all([
+  const [obj, hist, spr] = await Promise.all([
     supabase
       .from('orders')
       .select(
@@ -97,10 +118,16 @@ export async function nacitajDetail(id: string): Promise<Detail | null> {
       .select('id, item_id, old_status, new_status, changed_by, changed_at')
       .eq('order_id', id)
       .order('changed_at'),
+    supabase
+      .from('order_messages')
+      .select('id, kind, recipient, sent_by, sent_at, ok, error')
+      .eq('order_id', id)
+      .order('sent_at'),
   ])
 
   if (obj.error) throw obj.error
   if (hist.error) throw hist.error
+  if (spr.error) throw spr.error
   if (!obj.data) return null
 
   const o = obj.data as RiadokObjednavky
@@ -141,6 +168,15 @@ export async function nacitajDetail(id: string): Promise<Detail | null> {
       stary: h.old_status,
       novy: h.new_status,
     })),
+    spravy: ((spr.data ?? []) as RiadokSpravy[]).map((m) => ({
+      id: m.id,
+      kedy: new Date(m.sent_at),
+      kto: m.sent_by,
+      typ: m.kind,
+      komu: m.recipient,
+      ok: m.ok,
+      chyba: m.error,
+    })),
   }
 }
 
@@ -160,6 +196,23 @@ export async function oznacObjednavkuHotovu(id: string): Promise<void> {
 export async function oznacPolozkuHotovu(id: string): Promise<void> {
   const { error } = await supabase.rpc('mark_item_done', { p_item_id: id })
   if (error) throw error
+}
+
+/** Odošle e-mail zákazníkovi cez serverovú funkciu (z adresy objednavky@nakolace.sk). */
+export async function odosliEmail(orderId: string, typ: TypSpravy, predmet: string, text: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('posli-email', { body: { orderId, typ, predmet, text } })
+  if (!error) return
+  let sprava = error.message
+  const kontext: unknown = 'context' in error ? (error as { context?: unknown }).context : undefined
+  if (kontext instanceof Response) {
+    try {
+      const telo = (await kontext.json()) as { error?: string }
+      if (telo.error) sprava = telo.error
+    } catch {
+      // odpoveď nebola JSON
+    }
+  }
+  throw new Error(sprava)
 }
 
 export function sumaPoloziek(d: Detail): number {

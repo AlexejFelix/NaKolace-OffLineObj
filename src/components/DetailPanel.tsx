@@ -5,13 +5,14 @@ import {
   SPRAVY,
   nacitajDetail,
   nastavStav,
-  odkazEmail,
+  odosliEmail,
   odkazWhatsApp,
   oznacObjednavkuHotovu,
   oznacPolozkuHotovu,
   sumaSpolu,
   zostavSpravu,
   type Detail,
+  type TypSpravy,
   type ZaznamHistorie,
 } from '../lib/detail'
 import './DetailPanel.css'
@@ -52,6 +53,10 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
   const [pracujem, setPracujem] = useState(false)
   const [chybaAkcie, setChybaAkcie] = useState<string | null>(null)
   const [potvrdZrusenie, setPotvrdZrusenie] = useState(false)
+  const [koncept, setKoncept] = useState<{ typ: TypSpravy; predmet: string; text: string } | null>(null)
+  const [odosielam, setOdosielam] = useState(false)
+  const [chybaOdoslania, setChybaOdoslania] = useState<string | null>(null)
+  const [odoslane, setOdoslane] = useState<string | null>(null)
 
   useEffect(() => {
     let aktivne = true
@@ -69,11 +74,16 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
 
   useEffect(() => {
     function naKlaves(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+      if (e.key !== 'Escape') return
+      if (koncept) {
+        if (!odosielam) setKoncept(null)
+      } else {
+        onClose()
+      }
     }
     window.addEventListener('keydown', naKlaves)
     return () => window.removeEventListener('keydown', naKlaves)
-  }, [onClose])
+  }, [onClose, koncept, odosielam])
 
   const aktualne = nacitanie !== null && nacitanie.id === id
   const d = aktualne ? nacitanie.detail : null
@@ -93,6 +103,45 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
   }
 
   const meno = (uid: string | null) => (uid ? mena.get(uid) || '—' : '—')
+
+  function otvorKoncept(typ: TypSpravy) {
+    if (!d) return
+    const s = zostavSpravu(typ, d)
+    setChybaOdoslania(null)
+    setOdoslane(null)
+    setKoncept({ typ, predmet: s.predmet, text: s.text })
+  }
+
+  async function odosli() {
+    if (!d || !koncept) return
+    setOdosielam(true)
+    setChybaOdoslania(null)
+    try {
+      await odosliEmail(d.id, koncept.typ, koncept.predmet, koncept.text)
+      setKoncept(null)
+      setOdoslane(`E-mail bol odoslaný na ${d.email}.`)
+      onZmena()
+    } catch (e) {
+      setChybaOdoslania(e instanceof Error ? e.message : String(e))
+      onZmena()
+    } finally {
+      setOdosielam(false)
+    }
+  }
+
+  const nazovSpravy = (t: TypSpravy) => SPRAVY.find((s) => s.typ === t)?.nazov ?? t
+
+  const historia = d
+    ? [
+        ...d.historia.map((h) => ({ kluc: `s${h.id}`, kedy: h.kedy, text: popisHistorie(h), chyba: false })),
+        ...d.spravy.map((m) => ({
+          kluc: `m${m.id}`,
+          kedy: m.kedy,
+          text: `${m.kto ? `${meno(m.kto)} · ` : ''}✉ ${nazovSpravy(m.typ)} → ${m.komu}${m.ok ? '' : ' (neodoslané)'}`,
+          chyba: !m.ok,
+        })),
+      ].sort((a, b) => a.kedy.getTime() - b.kedy.getTime())
+    : []
 
   function popisHistorie(h: ZaznamHistorie): string {
     const kto = h.kto ? `${meno(h.kto)} · ` : ''
@@ -308,10 +357,10 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
               <div className="dp-grid">
                 <section className="dp-section">
                   <h3>Správa zákazníkovi</h3>
+                  {odoslane && <div className="notice notice-ok">{odoslane}</div>}
                   {SPRAVY.map((s) => {
                     const sprava = zostavSpravu(s.typ, d)
                     const wa = odkazWhatsApp(d.telefon, `${sprava.text}`)
-                    const mail = odkazEmail(d.email, sprava.predmet, sprava.text)
                     return (
                       <div key={s.typ} className="dp-msg">
                         <span>{s.nazov}</span>
@@ -325,10 +374,10 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
                               WhatsApp
                             </span>
                           )}
-                          {mail ? (
-                            <a className="dp-chip" href={mail}>
+                          {d.email.trim() ? (
+                            <button type="button" className="dp-chip" onClick={() => otvorKoncept(s.typ)}>
                               E-mail
-                            </a>
+                            </button>
                           ) : (
                             <span className="dp-chip is-off" title="Chýba e-mail">
                               E-mail
@@ -348,9 +397,9 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
                   <h3 className="dp-history-title">História</h3>
                   <div className="dp-history">
                     <span>{kratkyCas(d.vytvorena)} · prijatá</span>
-                    {d.historia.map((h) => (
-                      <span key={h.id}>
-                        {kratkyCas(h.kedy)} · {popisHistorie(h)}
+                    {historia.map((h) => (
+                      <span key={h.kluc} className={h.chyba ? 'dp-history-err' : undefined}>
+                        {kratkyCas(h.kedy)} · {h.text}
                       </span>
                     ))}
                   </div>
@@ -369,6 +418,60 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
               )}
             </div>
           </>
+        )}
+
+        {d && koncept && (
+          <div className="dp-compose-wrap">
+            <div className="dp-compose" role="dialog" aria-modal="true" aria-label="E-mail zákazníkovi">
+              <div className="dp-compose-head">
+                <h3>E-mail: {nazovSpravy(koncept.typ)}</h3>
+                <button type="button" className="dp-close" aria-label="Zavrieť" disabled={odosielam} onClick={() => setKoncept(null)}>
+                  ×
+                </button>
+              </div>
+              <div className="dp-compose-meta">
+                <span>
+                  Od: <strong>Na Koláče &lt;objednavky@nakolace.sk&gt;</strong>
+                </span>
+                <span>
+                  Komu: <strong>{d.email}</strong>
+                </span>
+              </div>
+              <label className="field">
+                Predmet
+                <input
+                  className="input"
+                  type="text"
+                  value={koncept.predmet}
+                  maxLength={200}
+                  onChange={(e) => setKoncept({ ...koncept, predmet: e.target.value })}
+                />
+              </label>
+              <label className="field dp-compose-text">
+                Text
+                <textarea
+                  className="input"
+                  rows={14}
+                  value={koncept.text}
+                  onChange={(e) => setKoncept({ ...koncept, text: e.target.value })}
+                />
+              </label>
+              {chybaOdoslania && <div className="notice notice-error">E-mail sa nepodarilo odoslať: {chybaOdoslania}</div>}
+              <div className="dp-compose-actions">
+                <button type="button" className="btn btn-secondary" disabled={odosielam} onClick={() => setKoncept(null)}>
+                  Zrušiť
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={odosielam || !koncept.predmet.trim() || !koncept.text.trim()}
+                  onClick={() => void odosli()}
+                >
+                  {odosielam ? 'Odosiela sa…' : 'Odoslať'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </aside>
     </div>
