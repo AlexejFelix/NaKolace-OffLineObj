@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ALERGENY,
   DOPRAVA_CENA,
@@ -11,7 +11,9 @@ import {
   type PolozkaFormular,
   type Prevzatie,
 } from '../lib/model'
-import { najdiKolizie, ulozObjednavku, type Kolizia } from '../lib/objednavky'
+import { najdiKolizie, ulozObjednavku, upravObjednavku, type Kolizia } from '../lib/objednavky'
+import { nacitajDetail, type Detail } from '../lib/detail'
+import { naKluc } from '../lib/den'
 import './NovaObjednavka.css'
 
 function novyKluc(): string {
@@ -44,26 +46,78 @@ type StavKontroly =
   | { typ: 'kolizie'; zoznam: Kolizia[] }
   | { typ: 'chyba' }
 
+function dvojmiestne(n: number): string {
+  return String(n).padStart(2, '0')
+}
+
 export default function NovaObjednavka() {
-  const [datum, setDatum] = useState('')
-  const [cas, setCas] = useState('')
-  const [prevzatie, setPrevzatie] = useState<Prevzatie>('odber')
-  const [adresaDorucenia, setAdresaDorucenia] = useState('')
+  const { id } = useParams()
+  const [nacitanie, setNacitanie] = useState<{ id: string; detail: Detail | null; chyba: string | null } | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    let aktivne = true
+    nacitajDetail(id)
+      .then((detail) => {
+        if (aktivne) setNacitanie({ id, detail, chyba: null })
+      })
+      .catch((e: unknown) => {
+        if (aktivne) setNacitanie({ id, detail: null, chyba: e instanceof Error ? e.message : String(e) })
+      })
+    return () => {
+      aktivne = false
+    }
+  }, [id])
+
+  if (!id) return <Formular />
+  if (!nacitanie || nacitanie.id !== id) return <p className="dp-muted">Načítava sa…</p>
+  if (nacitanie.chyba) return <div className="notice notice-error">Objednávku sa nepodarilo načítať: {nacitanie.chyba}</div>
+  if (!nacitanie.detail) return <div className="notice notice-warn">Objednávka sa nenašla.</div>
+  return <Formular key={id} povodna={nacitanie.detail} />
+}
+
+function Formular({ povodna }: { povodna?: Detail }) {
+  const navigate = useNavigate()
+  const upravujem = Boolean(povodna)
+  const [datum, setDatum] = useState(() =>
+    povodna?.cas ? `${povodna.cas.getFullYear()}-${dvojmiestne(povodna.cas.getMonth() + 1)}-${dvojmiestne(povodna.cas.getDate())}` : '',
+  )
+  const [cas, setCas] = useState(() =>
+    povodna?.cas ? `${dvojmiestne(povodna.cas.getHours())}:${dvojmiestne(povodna.cas.getMinutes())}` : '',
+  )
+  const [prevzatie, setPrevzatie] = useState<Prevzatie>(povodna?.prevzatie ?? 'odber')
+  const [adresaDorucenia, setAdresaDorucenia] = useState(povodna?.adresaDorucenia ?? '')
   const [rovnakaAdresa, setRovnakaAdresa] = useState(false)
 
-  const [meno, setMeno] = useState('')
-  const [telefon, setTelefon] = useState('')
-  const [email, setEmail] = useState('')
-  const [adresaBydliska, setAdresaBydliska] = useState('')
-  const [ico, setIco] = useState('')
+  const [meno, setMeno] = useState(povodna?.meno ?? '')
+  const [telefon, setTelefon] = useState(povodna?.telefon ?? '')
+  const [email, setEmail] = useState(povodna?.email ?? '')
+  const [adresaBydliska, setAdresaBydliska] = useState(povodna?.adresaBydliska ?? '')
+  const [ico, setIco] = useState(povodna?.ico ?? '')
 
-  const [polozky, setPolozky] = useState<PolozkaFormular[]>([prazdnaPolozka()])
+  const [polozky, setPolozky] = useState<PolozkaFormular[]>(() =>
+    povodna && povodna.polozky.length
+      ? povodna.polozky.map((p) => ({
+          kluc: p.id,
+          id: p.id,
+          productId: null,
+          nazov: p.nazov,
+          mnozstvo: p.mnozstvo,
+          cena: p.cena,
+          konfiguracia: p.konfiguracia,
+          alergeny: [...p.alergeny],
+        }))
+      : [prazdnaPolozka()],
+  )
   const [otvoreneAlergeny, setOtvoreneAlergeny] = useState<string | null>(null)
 
-  const [poznamka, setPoznamka] = useState('')
-  const [platba, setPlatba] = useState<Platba | null>(null)
-  const [zlavaText, setZlavaText] = useState('')
-  const [dopravaRucne, setDopravaRucne] = useState<string | null>(null)
+  const [poznamka, setPoznamka] = useState(povodna?.poznamka ?? '')
+  const [platba, setPlatba] = useState<Platba | null>(povodna?.platba ?? null)
+  const [zlavaText, setZlavaText] = useState(povodna && povodna.zlava ? naText(povodna.zlava) : '')
+  // pri úprave ponecháme uložené dopravné tak, ako je (dá sa vrátiť na automatický výpočet)
+  const [dopravaRucne, setDopravaRucne] = useState<string | null>(
+    povodna && povodna.prevzatie === 'dorucenie' ? naText(povodna.doprava) : null,
+  )
 
   const [kontrola, setKontrola] = useState<StavKontroly>({ typ: 'nic' })
   const [ukladam, setUkladam] = useState(false)
@@ -80,7 +134,7 @@ export default function NovaObjednavka() {
     let aktivne = true
     const casovac = window.setTimeout(() => {
       setKontrola({ typ: 'kontrola' })
-      najdiKolizie(termin, prevzatie)
+      najdiKolizie(termin, prevzatie, povodna?.id)
         .then((zoznam) => {
           if (!aktivne) return
           setKontrola(zoznam.length ? { typ: 'kolizie', zoznam } : { typ: 'volne' })
@@ -93,7 +147,7 @@ export default function NovaObjednavka() {
       aktivne = false
       window.clearTimeout(casovac)
     }
-  }, [termin, prevzatie])
+  }, [termin, prevzatie, povodna?.id])
 
   const medzisucet = suma(polozky)
   const zlava = naCislo(zlavaText) ?? 0
@@ -142,7 +196,7 @@ export default function NovaObjednavka() {
     setUkladam(true)
     setVysledok(null)
     try {
-      await ulozObjednavku({
+      const udaje = {
         termin,
         prevzatie,
         meno,
@@ -155,8 +209,15 @@ export default function NovaObjednavka() {
         doprava,
         zlava,
         platba,
-        polozky: polozky.filter((p) => p.nazov.trim() !== '' || p.cena !== null),
-      })
+        polozky: polozky.filter((p) => p.id || p.nazov.trim() !== '' || p.cena !== null),
+      }
+      if (povodna) {
+        await upravObjednavku(povodna.id, udaje)
+        const den = termin ? `d=${naKluc(termin)}&` : ''
+        navigate(`/?${den}o=${povodna.id}`)
+        return
+      }
+      await ulozObjednavku(udaje)
       vycistit()
       setVysledok({ ok: true, text: 'Objednávka bola uložená.' })
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -175,14 +236,14 @@ export default function NovaObjednavka() {
           <Link to="/" className="back-link">
             ‹ Objednávky
           </Link>
-          <h1 className="page-title">Nová objednávka</h1>
+          <h1 className="page-title">{upravujem ? 'Upraviť objednávku' : 'Nová objednávka'}</h1>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <Link to="/" className="btn btn-secondary">
+          <Link to={povodna ? `/?${povodna.cas ? `d=${naKluc(povodna.cas)}&` : ''}o=${povodna.id}` : '/'} className="btn btn-secondary">
             Zrušiť
           </Link>
           <button type="button" className="btn btn-primary" onClick={() => void ulozit()} disabled={ukladam}>
-            {ukladam ? 'Ukladám…' : 'Uložiť objednávku'}
+            {ukladam ? 'Ukladám…' : upravujem ? 'Uložiť zmeny' : 'Uložiť objednávku'}
           </button>
         </div>
       </div>
@@ -471,7 +532,7 @@ export default function NovaObjednavka() {
               <span className="no-total-value">{euro(spolu)}</span>
             </div>
             <button type="button" className="btn btn-primary no-save" onClick={() => void ulozit()} disabled={ukladam}>
-              {ukladam ? 'Ukladám…' : 'Uložiť objednávku'}
+              {ukladam ? 'Ukladám…' : upravujem ? 'Uložiť zmeny' : 'Uložiť objednávku'}
             </button>
           </section>
         </aside>

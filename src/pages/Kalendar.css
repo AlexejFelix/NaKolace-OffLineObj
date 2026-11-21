@@ -1,0 +1,302 @@
+.ka {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ka-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ka-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ka-view-btn {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ka-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.ka-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ka-title {
+  font-size: 32px;
+  margin-top: 4px;
+}
+
+/* ---------- Týždeň ---------- */
+
+.ka-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.ka-day {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 140px;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid #efecf1;
+}
+
+.ka-day.is-today {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-soft);
+}
+
+.ka-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px 2px 6px;
+  border: 0;
+  border-bottom: 1px solid #f1eef3;
+  background: none;
+  font-size: 13px;
+  color: var(--label);
+  cursor: pointer;
+  text-align: left;
+}
+
+.ka-day-head strong {
+  color: var(--text);
+}
+
+.ka-empty {
+  font-size: 13px;
+  color: #b3adb8;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.ka-order {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 9px;
+  border: 1px solid #efecf1;
+  border-left: 4px solid #8a8291;
+  border-radius: 10px;
+  background: #fbfafc;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.ka-order:hover {
+  background: var(--brand-soft);
+}
+
+.ka-order.is-zrusena {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.ka-order-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.ka-order-top .tag {
+  height: 18px;
+  padding: 0 6px;
+  font-size: 10px;
+}
+
+.ka-order-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ka-order-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ka-order.is-compact {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-left-width: 3px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.ka-order.is-compact .ka-order-top {
+  font-size: 12px;
+}
+
+.ka-order.is-compact .ka-order-name {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ---------- Mesiac ---------- */
+
+.ka-month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ka-month-dow {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a8291;
+}
+
+.ka-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 112px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid #efecf1;
+}
+
+.ka-cell.is-out {
+  background: transparent;
+  opacity: 0.5;
+}
+
+.ka-cell.is-today {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-soft);
+}
+
+.ka-cell-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.ka-cell-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ka-cell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ka-more {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand);
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .ka-week {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ka {
+    gap: 14px;
+  }
+
+  .ka-title {
+    font-size: 24px;
+  }
+
+  .ka-toolbar-right .btn {
+    display: none;
+  }
+
+  .ka-today {
+    display: none;
+  }
+
+  .ka-week {
+    grid-template-columns: 1fr;
+  }
+
+  .ka-day {
+    min-height: 0;
+    gap: 6px;
+  }
+
+  .ka-empty {
+    display: none;
+  }
+
+  .ka-day-head {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .ka-month {
+    gap: 3px;
+  }
+
+  .ka-cell {
+    min-height: 56px;
+    padding: 4px;
+  }
+
+  .ka-cell-list {
+    display: none;
+  }
+
+  .ka-cell.has-orders {
+    background: var(--brand-soft);
+  }
+}

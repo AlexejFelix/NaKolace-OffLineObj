@@ -38,6 +38,8 @@ export const DOPRAVA_ZDARMA_OD = 70
 
 export type PolozkaFormular = {
   kluc: string
+  /** id existujúcej položky v databáze (pri úprave objednávky) */
+  id?: string
   productId: string | null
   nazov: string
   mnozstvo: number

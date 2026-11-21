@@ -1,0 +1,279 @@
+/* ---------- Ovládanie (len na obrazovke) ---------- */
+
+.tl-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.tl-controls .seg {
+  min-width: 200px;
+}
+
+.tl-controls .field {
+  min-width: 180px;
+}
+
+/* ---------- Papier ---------- */
+
+.tl-paper {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #efecf1;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(31, 27, 34, 0.05);
+  padding: 28px 32px;
+  max-width: 860px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tl-paper h1 {
+  font-family: var(--font-brand);
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+
+.tl-sub {
+  color: #555555;
+  margin: 0 0 18px;
+}
+
+.tl-day {
+  margin-top: 18px;
+  break-inside: auto;
+}
+
+.tl-day h2 {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  margin: 0 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #111111;
+}
+
+.tl-hour {
+  margin: 10px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #555555;
+}
+
+.tl-order {
+  padding: 8px 0;
+  border-bottom: 1px solid #dddddd;
+  break-inside: avoid;
+}
+
+.tl-order-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tl-order-head strong {
+  font-size: 14px;
+}
+
+.tl-order-addr {
+  color: #333333;
+}
+
+.tl-items {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+.tl-items li {
+  display: flex;
+  gap: 8px;
+  padding: 1px 0;
+}
+
+.tl-box {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.tl-conf {
+  color: #555555;
+}
+
+.tl-note {
+  margin-top: 4px;
+  color: #333333;
+  font-style: italic;
+}
+
+.tl-none {
+  color: #777777;
+  padding: 6px 0;
+}
+
+/* ---------- Preberací protokol ---------- */
+
+.pp-paper {
+  font-size: 13px;
+}
+
+.pp-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.pp-seller {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pp-seller strong {
+  font-size: 13px;
+}
+
+.pp-title {
+  text-align: right;
+}
+
+.pp-title h1 {
+  font-size: 24px;
+}
+
+.pp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 24px;
+  margin: 12px 0 18px;
+}
+
+.pp-grid dt {
+  font-size: 11px;
+  color: #666666;
+}
+
+.pp-grid dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.pp-span-2 {
+  grid-column: span 2;
+}
+
+.pp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.pp-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555555;
+  border-bottom: 2px solid #111111;
+  padding: 6px 6px;
+}
+
+.pp-table td {
+  border-bottom: 1px solid #dddddd;
+  padding: 6px;
+  vertical-align: top;
+}
+
+.pp-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pp-totals {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+  margin: 6px 0 18px;
+}
+
+.pp-allergens {
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  border: 1px solid #111111;
+  border-radius: 6px;
+}
+
+.pp-allergens h2 {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+
+.pp-allergens ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.pp-declaration {
+  margin: 18px 0 40px;
+}
+
+.pp-signs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+}
+
+.pp-sign {
+  border-top: 1px solid #111111;
+  padding-top: 4px;
+  font-size: 11px;
+  color: #555555;
+}
+
+/* ---------- Tlač ---------- */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  body,
+  .shell,
+  .content {
+    background: #ffffff !important;
+  }
+
+  .sidebar,
+  .fab,
+  .no-print {
+    display: none !important;
+  }
+
+  .shell {
+    display: block !important;
+  }
+
+  .content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .tl-paper {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    max-width: none;
+  }
+
+  .tl-day + .tl-day.is-new-page {
+    break-before: page;
+  }
+}
