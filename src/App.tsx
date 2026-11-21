@@ -5,6 +5,9 @@ import Layout from './components/Layout'
 import Prihlasenie from './pages/Prihlasenie'
 import Objednavky from './pages/Objednavky'
 import NovaObjednavka from './pages/NovaObjednavka'
+import Kalendar from './pages/Kalendar'
+import Tlac from './pages/Tlac'
+import Protokol from './pages/Protokol'
 
 function Chranene({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth()
@@ -17,15 +20,6 @@ function LenAdmin({ children }: { children: ReactNode }) {
   const { isAdmin } = useAuth()
   if (!isAdmin) return <Navigate to="/" replace />
   return <>{children}</>
-}
-
-function Pripravuje({ nazov }: { nazov: string }) {
-  return (
-    <section>
-      <h1>{nazov}</h1>
-      <p style={{ color: 'var(--text-muted)' }}>Táto časť sa pripravuje.</p>
-    </section>
-  )
 }
 
 export default function App() {
@@ -42,8 +36,17 @@ export default function App() {
             }
           >
             <Route path="/" element={<Objednavky />} />
-            <Route path="/kalendar" element={<Pripravuje nazov="Kalendár" />} />
-            <Route path="/tlac" element={<Pripravuje nazov="Tlač" />} />
+            <Route path="/kalendar" element={<Kalendar />} />
+            <Route path="/tlac" element={<Tlac />} />
+            <Route path="/protokol/:id" element={<Protokol />} />
+            <Route
+              path="/upravit/:id"
+              element={
+                <LenAdmin>
+                  <NovaObjednavka />
+                </LenAdmin>
+              }
+            />
             <Route
               path="/nova"
               element={

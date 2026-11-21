@@ -248,14 +248,14 @@ export default function Objednavky() {
             <span className="ob-view is-on" aria-current="page">
               Deň
             </span>
-            <Link to="/kalendar" className="ob-view">
+            <Link to={`/kalendar?pohlad=tyzden&d=${kluc}`} className="ob-view">
               Týždeň
             </Link>
-            <Link to="/kalendar" className="ob-view">
+            <Link to={`/kalendar?pohlad=mesiac&d=${kluc}`} className="ob-view">
               Mesiac
             </Link>
           </div>
-          <Link to="/tlac" className="btn btn-secondary">
+          <Link to={`/tlac?d=${kluc}`} className="btn btn-secondary">
             Tlačiť deň
           </Link>
           {isAdmin && (

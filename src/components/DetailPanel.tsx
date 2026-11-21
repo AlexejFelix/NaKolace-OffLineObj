@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ALERGENY, PLATBY, STAVY, euro, type Stav } from '../lib/model'
 import { monogram, tvar } from '../lib/den'
 import {
@@ -189,6 +190,11 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
                     Označiť ako hotovú
                   </button>
                 )}
+                {isAdmin && (
+                  <Link to={`/upravit/${d.id}`} className="btn btn-secondary">
+                    Upraviť
+                  </Link>
+                )}
                 {isAdmin && d.stav !== 'zrusena' && !potvrdZrusenie && (
                   <button type="button" className="btn btn-secondary dp-danger" disabled={pracujem} onClick={() => setPotvrdZrusenie(true)}>
                     Zrušiť
@@ -342,9 +348,9 @@ export default function DetailPanel({ id, mena, isAdmin, verzia, onClose, onZmen
 
                 <section className="dp-section">
                   <h3>Tlač</h3>
-                  <button type="button" className="btn btn-outline" disabled title="Tlač sa pripravuje">
+                  <Link to={`/protokol/${d.id}`} className="btn btn-outline">
                     Preberací protokol
-                  </button>
+                  </Link>
                   <h3 className="dp-history-title">História</h3>
                   <div className="dp-history">
                     <span>{kratkyCas(d.vytvorena)} · prijatá</span>

@@ -10,7 +10,7 @@ export type Kolizia = {
 
 const POL_HODINY_MS = 30 * 60 * 1000
 
-export async function najdiKolizie(termin: Date, prevzatie: Prevzatie): Promise<Kolizia[]> {
+export async function najdiKolizie(termin: Date, prevzatie: Prevzatie, okremId?: string): Promise<Kolizia[]> {
   const od = new Date(termin.getTime() - POL_HODINY_MS).toISOString()
   const do_ = new Date(termin.getTime() + POL_HODINY_MS).toISOString()
 
@@ -25,6 +25,7 @@ export async function najdiKolizie(termin: Date, prevzatie: Prevzatie): Promise<
   if (error) throw error
 
   return (data ?? [])
+    .filter((o) => o.id !== okremId)
     .filter((o) => !(prevzatie === 'odber' && o.fulfillment === 'odber'))
     .map((o) => ({
       id: o.id as string,
@@ -50,7 +51,7 @@ export type NovaObjednavka = {
   polozky: PolozkaFormular[]
 }
 
-export async function ulozObjednavku(o: NovaObjednavka): Promise<string> {
+function naPayload(o: NovaObjednavka) {
   const objednavka = {
     scheduled_at: o.termin ? o.termin.toISOString() : '',
     fulfillment: o.prevzatie,
@@ -67,6 +68,7 @@ export async function ulozObjednavku(o: NovaObjednavka): Promise<string> {
   }
 
   const polozky = o.polozky.map((p) => ({
+    id: p.id ?? '',
     product_id: p.productId ?? '',
     name: p.nazov.trim(),
     quantity: p.mnozstvo,
@@ -75,7 +77,19 @@ export async function ulozObjednavku(o: NovaObjednavka): Promise<string> {
     allergens: p.alergeny,
   }))
 
+  return { objednavka, polozky }
+}
+
+export async function ulozObjednavku(o: NovaObjednavka): Promise<string> {
+  const { objednavka, polozky } = naPayload(o)
   const { data, error } = await supabase.rpc('create_order', { p_order: objednavka, p_items: polozky })
+  if (error) throw error
+  return data as string
+}
+
+export async function upravObjednavku(id: string, o: NovaObjednavka): Promise<string> {
+  const { objednavka, polozky } = naPayload(o)
+  const { data, error } = await supabase.rpc('update_order', { p_id: id, p_order: objednavka, p_items: polozky })
   if (error) throw error
   return data as string
 }

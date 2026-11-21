@@ -17,6 +17,7 @@ export type DenObjednavka = {
   cas: Date | null
   meno: string
   telefon: string
+  adresaDorucenia: string
   prevzatie: Prevzatie | null
   stav: Stav
   doprava: number
@@ -42,6 +43,7 @@ type RiadokObjednavky = {
   scheduled_at: string | null
   customer_name: string | null
   phone: string | null
+  delivery_address: string | null
   fulfillment: Prevzatie | null
   status: Stav
   delivery_fee: number | string
@@ -73,12 +75,15 @@ export function zKluca(kluc: string | null): Date | null {
 
 export async function nacitajDen(den: Date): Promise<DenObjednavka[]> {
   const od = zaciatokDna(den)
-  const doDna = posunDni(od, 1)
+  return nacitajRozsah(od, posunDni(od, 1))
+}
 
+/** Objednávky s termínom v intervale [od, doDna). */
+export async function nacitajRozsah(od: Date, doDna: Date): Promise<DenObjednavka[]> {
   const { data, error } = await supabase
     .from('orders')
     .select(
-      'id, scheduled_at, customer_name, phone, fulfillment, status, delivery_fee, discount, completed_by, order_items(id, position, name, quantity, unit_price, configuration, allergens, status, made_by)',
+      'id, scheduled_at, customer_name, phone, delivery_address, fulfillment, status, delivery_fee, discount, completed_by, order_items(id, position, name, quantity, unit_price, configuration, allergens, status, made_by)',
     )
     .gte('scheduled_at', od.toISOString())
     .lt('scheduled_at', doDna.toISOString())
@@ -86,11 +91,13 @@ export async function nacitajDen(den: Date): Promise<DenObjednavka[]> {
 
   if (error) throw error
 
-  return ((data ?? []) as RiadokObjednavky[]).map((o) => ({
+  return ((data ?? []) as RiadokObjednavky[])
+    .map((o) => ({
     id: o.id,
     cas: o.scheduled_at ? new Date(o.scheduled_at) : null,
     meno: o.customer_name ?? '',
     telefon: o.phone ?? '',
+    adresaDorucenia: o.delivery_address ?? '',
     prevzatie: o.fulfillment,
     stav: o.status,
     doprava: Number(o.delivery_fee) || 0,
@@ -108,7 +115,8 @@ export async function nacitajDen(den: Date): Promise<DenObjednavka[]> {
         stav: p.status,
         madeBy: p.made_by,
       })),
-  }))
+    }))
+    .sort((a, b) => (a.cas?.getTime() ?? 0) - (b.cas?.getTime() ?? 0))
 }
 
 export async function nacitajMena(): Promise<Map<string, string>> {
@@ -134,4 +142,15 @@ export function tvar(n: number, jeden: string, dva: string, pat: string): string
   if (n === 1) return jeden
   if (n >= 2 && n <= 4) return dva
   return pat
+}
+
+/** Pondelok týždňa, do ktorého patrí deň. */
+export function zaciatokTyzdna(d: Date): Date {
+  const z = zaciatokDna(d)
+  const posun = (z.getDay() + 6) % 7
+  return posunDni(z, -posun)
+}
+
+export function rovnakyDen(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
