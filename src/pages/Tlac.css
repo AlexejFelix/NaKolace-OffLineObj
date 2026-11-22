@@ -236,12 +236,114 @@
   color: #555555;
 }
 
+/* Číselné stĺpce zarovnať doprava aj v hlavičke */
+.pp-table .pp-num {
+  text-align: right;
+}
+
+/* Dva výtlačky protokolu: na obrazovke jeden, pri tlači dva */
+.pp-print,
+.pp-measure {
+  display: none;
+}
+
+.pp-measure {
+  display: block;
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 190mm;
+  visibility: hidden;
+}
+
+.pp-measure .tl-paper {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  max-width: none;
+}
+
+/* Kompaktná verzia (polovica A4) */
+.pp-compact {
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+.pp-compact .pp-top {
+  margin-bottom: 8px;
+}
+
+.pp-compact .pp-seller {
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+.pp-compact .pp-seller strong {
+  font-size: 10.5px;
+}
+
+.pp-compact .pp-title h1 {
+  font-size: 17px;
+}
+
+.pp-compact .pp-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px 16px;
+  margin: 6px 0 8px;
+}
+
+.pp-compact .pp-span-2 {
+  grid-column: span 3;
+}
+
+.pp-compact .pp-grid dt {
+  font-size: 9px;
+}
+
+.pp-compact .pp-table th {
+  font-size: 9px;
+  padding: 3px 4px;
+}
+
+.pp-compact .pp-table td {
+  padding: 3px 4px;
+}
+
+.pp-compact .pp-totals {
+  margin: 4px 0 8px;
+  gap: 16px;
+}
+
+.pp-compact .pp-allergens {
+  margin: 0 0 8px;
+  padding: 5px 8px;
+}
+
+.pp-compact .pp-allergens h2 {
+  font-size: 10.5px;
+  margin: 0 0 3px;
+}
+
+.pp-compact .pp-allergens ul {
+  columns: 2;
+  column-gap: 20px;
+}
+
+.pp-compact .pp-declaration {
+  margin: 8px 0 22px;
+}
+
+.pp-compact .pp-sign {
+  font-size: 9px;
+}
+
 /* ---------- Tlač ---------- */
 
 @media print {
   @page {
     size: A4;
-    margin: 14mm;
+    margin: 10mm;
   }
 
   body,
@@ -274,6 +376,42 @@
   }
 
   .tl-day + .tl-day.is-new-page {
+    break-before: page;
+  }
+
+  /* Preberací protokol: dva výtlačky */
+  .pp-screen,
+  .pp-measure {
+    display: none !important;
+  }
+
+  .pp-print {
+    display: block;
+  }
+
+  .pp-print.is-polovica .pp-copy {
+    height: 136mm;
+    overflow: hidden;
+    break-inside: avoid;
+  }
+
+  .pp-cut {
+    height: 5mm;
+    display: flex;
+    align-items: center;
+    font-size: 9px;
+    color: #999999;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .pp-allergens,
+  .pp-declaration,
+  .pp-signs {
+    break-inside: avoid;
+  }
+
+  .pp-print.is-cela .pp-copy + .pp-copy {
     break-before: page;
   }
 }
